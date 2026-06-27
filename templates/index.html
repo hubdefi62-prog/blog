@@ -39,16 +39,9 @@
     <nav class="navbar navbar-expand-lg navbar-custom w-100">
         <div class="container">
             <a class="navbar-brand fw-bold" href="/">MY.BLOG</a>
-            <div class="navbar-nav ms-auto d-flex flex-row gap-2">
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 d-flex flex-row">
                 <a class="nav-link px-3 active" href="/">Головна</a>
                 <a class="nav-link px-3" href="/about">Про мене</a>
-                {% if user %}
-                    <a class="btn btn-outline-light rounded-pill px-3 btn-sm align-self-center" href="/profile/{{ user['user_id'] }}">Мій Акаунт</a>
-                    <a class="btn btn-danger rounded-pill px-3 btn-sm align-self-center" href="/logout">Вихід</a>
-                {% else %}
-                    <a class="btn btn-outline-light rounded-pill px-3 btn-sm align-self-center" href="/login">Вхід</a>
-                    <a class="btn btn-info rounded-pill px-3 btn-sm align-self-center text-white" href="/register">Реєстрація</a>
-                {% endif %}
             </div>
         </div>
     </nav>
@@ -69,7 +62,7 @@
                     <div class="card card-body shadow-sm mb-5 p-4 border-0 bg-light rounded-3">
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                             <h4 class="fw-bold m-0 text-dark">✍️ Створити нову публікацію</h4>
-                            <a href="/admin/categories" class="btn btn-sm btn-outline-dark rounded-pill px-3">⚙️ Керувати темами</a>
+                            <a href="/admin/categories" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold">⚙️ Додати / Видалити тему</a>
                         </div>
                         
                         <form action="/" method="POST">
@@ -118,7 +111,7 @@
                     {% if admin %}
                         <img src="{{ admin['image'] if admin['image'] else 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2080' }}" class="profile-img mb-3" alt="Admin">
                         <h5 class="fw-bold m-0 text-dark">{{ admin['name'] }}</h5>
-                        <p class="text-info small mb-3">@{{ admin['username'] }} (Автор блогу)</p>
+                        <p class="text-info small mb-3">@{{ admin['login'] }} (Автор блогу)</p>
                         <p class="text-secondary small m-0">{{ admin['description_short'] if admin['description_short'] else 'Вітаю у моєму блозі про технології!' }}</p>
                         <hr>
                         <a href="/profile/{{ admin['user_id'] }}" class="btn btn-sm btn-outline-dark rounded-pill px-3">Детальніше про мене</a>
