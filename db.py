@@ -102,6 +102,11 @@ def add_category(category_name):
     execute('INSERT INTO categories (category_name) VALUES (?)', [category_name])
     close_db()
 
+def delete_category(category_id):
+    open_db()
+    execute('DELETE FROM categories WHERE category_id = ?', [category_id])
+    close_db()
+
 def add_post(category_id, text, title="Без заголовку", datetime=None):
     open_db()
     if datetime is None:

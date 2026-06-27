@@ -4,7 +4,8 @@ from settings import PATH_DB
 from db import (create_tables, get_categories, add_post, get_posts, 
                 get_post_by_id, add_comment, get_comments, update_post, delete_post, delete_comment,
                 get_user_by_id, update_user_profile,
-                toggle_like, get_post_likes_count, check_user_liked, update_comment, get_comment_by_id)
+                toggle_like, get_post_likes_count, check_user_liked, update_comment, get_comment_by_id,
+                add_category, delete_category)
 from auth import auth_bp, get_current_user
 
 app = Flask(__name__)
@@ -70,8 +71,6 @@ def post_detail(post_id):
         return redirect(url_for('post_detail', post_id=post_id))
 
     comments = get_comments(post_id)
-    
-    # Робота з лайками
     likes_count = get_post_likes_count(post_id)
     has_liked = check_user_liked(user['user_id'], post_id) if user else False
 
@@ -123,7 +122,6 @@ def delete_comment_route(comment_id):
     delete_comment(comment_id)
     return redirect(url_for('post_detail', post_id=post_id))
 
-
 @app.route('/post/<int:post_id>/like', methods=['POST'])
 def like_post(post_id):
     user = get_current_user()
@@ -132,7 +130,6 @@ def like_post(post_id):
         
     toggle_like(user['user_id'], post_id)
     return redirect(url_for('post_detail', post_id=post_id))
-
 
 @app.route('/comment/<int:comment_id>/edit', methods=['GET', 'POST'])
 def edit_comment_route(comment_id):
@@ -152,6 +149,31 @@ def edit_comment_route(comment_id):
         return redirect(url_for('post_detail', post_id=comment['post_id']))
         
     return render_template('edit_comment.html', user=user, comment=comment)
+
+
+@app.route('/admin/categories', methods=['GET', 'POST'])
+def manage_categories():
+    user = get_current_user()
+    if not user or user['is_admin'] != 1:
+        abort(403)
+        
+    if request.method == 'POST':
+        category_name = request.form.get('category_name')
+        if category_name:
+            add_category(category_name.strip())
+        return redirect(url_for('manage_categories'))
+        
+    categories = get_categories()
+    return render_template('manage_categories.html', user=user, categories=categories)
+
+@app.route('/admin/categories/<int:category_id>/delete', methods=['POST'])
+def delete_category_route(category_id):
+    user = get_current_user()
+    if not user or user['is_admin'] != 1:
+        abort(403)
+        
+    delete_category(category_id)
+    return redirect(url_for('manage_categories'))
 
 @app.route('/profile/<int:user_id>')
 def profile(user_id):
