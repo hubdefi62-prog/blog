@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post['title'] }} — MY.BLOG</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Open Sans', sans-serif; color: #404040; }
+        .navbar-custom { padding-top: 15px; padding-bottom: 15px; background-color: #1a1a1a; font-weight: 800; text-transform: uppercase; }
+        .navbar-custom .navbar-brand, .navbar-custom .nav-link { color: #ffffff !important; }
+        .post-container { padding-top: 50px; padding-bottom: 50px; }
+        .comment-box { background-color: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #0085a1; position: relative; }
+        footer { padding: 40px 0; border-top: 1px solid #eee; margin-top: 80px; background-color: #fafafa; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-custom w-100">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">MY.BLOG</a>
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 d-flex flex-row">
+                <a class="nav-link px-3" href="/">Головна</a>
+                <a class="nav-link px-3" href="/about">Про мене</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container post-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <span class="badge bg-info mb-2"># {{ post['category_name'] }}</span>
+                
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h1 class="fw-bold m-0">{{ post['title'] }}</h1>
+                    {% if user and user['is_admin'] == 1 %}
+                        <div class="d-flex gap-2">
+                            <a href="/post/{{ post['post_id'] }}/edit" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Редагувати</a>
+                            <form action="/post/{{ post['post_id'] }}/delete" method="POST" onsubmit="return confirm('Ви впевнені?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">Видалити</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <p class="text-muted small mt-2">Опубліковано: {{ post['datetime'] }}</p>
+                <hr>
+                <div class="fs-5 lh-lg text-dark my-4" style="white-space: pre-wrap;">{{ post['text'] }}</div>
+                
+                <div class="d-flex align-items-center my-4">
+                    <form action="/post/{{ post['post_id'] }}/like" method="POST" class="m-0">
+                        <button type="submit" class="btn {% if has_liked %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-4 btn-sm fw-bold">
+                            ❤️ {% if has_liked %}Вам подобається{% else %}Лайк{% endif %}
+                        </button>
+                    </form>
+                    <span class="text-muted ms-3 fw-bold">Сподобалося: {{ likes_count }}</span>
+                </div>
+
+                <hr class="mt-5">
+
+                <h4 class="fw-bold mb-4 mt-5">💬 Обговорення ({{ comments|length }})</h4>
+
+                <form action="/post/{{ post['post_id'] }}" method="POST" class="mb-4">
+                    <div class="mb-3">
+                        <textarea class="form-control" name="comment_text" rows="3" placeholder="Напишіть свою думку..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-dark btn-sm rounded-pill px-4 fw-bold">Надіслати коментар</button>
+                </form>
+
+                {% if comments %}
+                    {% for comment in comments %}
+                        <div class="comment-box shadow-sm d-flex justify-content-between align-items-start">
+                            <div class="w-100">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong class="text-dark">{{ comment['user_name'] }}</strong>
+                                    <small class="text-muted me-5">{{ comment['datetime'] }}</small>
+                                </div>
+                                <p class="m-0 text-secondary pe-5">{{ comment['text'] }}</p>
+                                
+                                <div class="mt-2 text-end">
+                                    {% if user and (user['name'] == comment['user_name'] or user['is_admin'] == 1) %}
+                                        <a href="/comment/{{ comment['comment_id'] }}/edit" class="btn btn-link text-secondary p-0 me-2 btn-sm text-decoration-none">✏️ Редагувати</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if user and user['is_admin'] == 1 %}
+                                <form action="/comment/{{ comment['comment_id'] }}/delete" method="POST" onsubmit="return confirm('Видалити цей коментар?');" style="position: absolute; right: 15px; top: 15px;">
+                                    <input type="hidden" name="post_id" value="{{ post['post_id'] }}">
+                                    <button type="submit" class="btn-close" aria-label="Delete" style="font-size: 12px;"></button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted py-3">Коментарів ще немає.</p>
+                {% endif %}
+
+                <div class="mt-5 text-center">
+                    <a href="/" class="btn btn-outline-secondary btn-sm rounded-pill px-4">← Назад до стрічки</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center">
+        <div class="container"><p class="text-muted small m-0">© MY.BLOG 2026</p></div>
+    </footer>
+
+</body>
+</html>

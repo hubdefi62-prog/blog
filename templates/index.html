@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MY Blog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Open Sans', sans-serif; color: #404040; background-color: #ffffff; }
+        .navbar-custom { padding-top: 15px; padding-bottom: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; z-index: 1030; }
+        .navbar-custom .navbar-brand, .navbar-custom .nav-link { color: #ffffff !important; transition: color 0.2s; }
+        .navbar-custom .nav-link:hover { color: rgba(255, 255, 255, 0.7) !important; }
+        .intro-carousel { margin-bottom: 50px; position: relative; height: 520px; overflow: hidden; background-color: #1a1a1a; }
+        .carousel-inner, .carousel-item { height: 100% !important; }
+        .carousel-item { background-size: cover; background-position: center; background-repeat: no-repeat; }
+        .carousel-item::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.55); }
+        @media (max-width: 768px) { .intro-carousel { height: 380px; } }
+        .post-preview { padding: 25px 0; border-bottom: 1px solid #eee; }
+        .post-preview > a { text-decoration: none; }
+        .post-title { font-size: 28px; margin-top: 0; margin-bottom: 10px; font-weight: 700; line-height: 1.4; color: #212529; transition: color 0.2s; }
+        .post-title:hover { color: #0085a1 !important; }
+        .post-meta { color: #808080; font-size: 14px; font-style: italic; font-family: 'Lora', serif; }
+        .tag-badge { background-color: #f3f4f6; color: #4b5563; padding: 5px 12px; border-radius: 20px; font-size: 13px; text-decoration: none; font-weight: 600; transition: all 0.2s; margin-right: 5px; display: inline-block; }
+        .tag-badge:hover, .tag-badge.active { background-color: #0085a1; color: white !important; }
+        .admin-box { background-color: #f8f9fa; border-radius: 12px; border: 1px solid #e5e7eb; }
+        footer { padding: 40px 0; border-top: 1px solid #eee; margin-top: 80px; background-color: #fafafa; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-custom position-absolute w-100">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">MY.BLOG</a>
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 d-flex flex-row">
+                <a class="nav-link px-3 active" href="/">Головна</a>
+                <a class="nav-link px-3" href="/about">Про мене</a>
+            </div>
+            <div class="d-flex align-items-center">
+                {% if user %}
+                    <span class="text-white-50 small me-3">Вітаємо, {{ user['name'] }}!</span>
+                    <a href="/profile/{{ user['user_id'] }}" class="btn btn-sm btn-outline-light rounded-pill me-2">Мій акаунт</a>
+                    <a href="/logout" class="btn btn-outline-light btn-sm px-3 rounded-pill">Вийти</a>
+                {% else %}
+                    <a href="/login" class="btn btn-outline-light btn-sm px-3 rounded-pill me-2">Вхід</a>
+                    <a href="/register" class="btn btn-light btn-sm px-3 rounded-pill">Реєстрація</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <header id="headerCarousel" class="carousel slide carousel-fade intro-carousel" data-bs-ride="carousel" data-bs-interval="3000">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#headerCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#headerCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#headerCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active" style="background-image: url('{{ url_for('static', filename='images/photo1.jpg') }}');"></div>
+            <div class="carousel-item" style="background-image: url('{{ url_for('static', filename='images/photo2.jpg') }}');"></div>
+            <div class="carousel-item" style="background-image: url('{{ url_for('static', filename='images/photo3.jpg') }}');"></div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                
+                <div class="mb-5 text-center">
+                    <span class="text-muted small d-block mb-2 text-uppercase fw-bold tracking-wider">Теми блогу:</span>
+                    <a href="/" class="tag-badge {% if not selected_category %}active{% endif %}"># Усі теми</a>
+                    {% for category in categories %}
+                        <a href="/?category_id={{ category['category_id'] }}" class="tag-badge {% if selected_category == category['category_id'] %}active{% endif %}"># {{ category['category_name'] }}</a>
+                    {% endfor %}
+                </div>
+
+                {% if user and user['is_admin'] == 1 %}
+                    <div class="admin-box p-4 mb-5 shadow-sm">
+                        <h4 class="fw-bold mb-3 text-dark text-center">📝 Створити новий запис</h4>
+                        <form action="/" method="POST">
+                            <div class="mb-3">
+                                <select class="form-select" id="category_id" name="category_id" required>
+                                    <option value="" disabled selected>Оберіть категорію...</option>
+                                    {% for category in categories %}
+                                        <option value="{{ category['category_id'] }}">{{ category['category_name'] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <input type="text" class="form-control" id="title" name="title" placeholder="Заголовок статті..." required>
+                            </div>
+                            <div class="mb-3">
+                                <textarea class="form-control" id="text" name="text" rows="4" placeholder="Текст твого поста..." required></textarea>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-dark px-4 rounded-pill fw-bold">Опублікувати</button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+
+                <h3 class="fw-bold pb-2 border-bottom text-uppercase fs-6 tracking-wide text-muted mb-4">
+                    {% if selected_category %} Публікації з обраної теми {% else %} Усі публікації {% endif %}
+                </h3>
+                
+                {% if posts %}
+                    {% for post in posts %}
+                        <div class="post-preview">
+                            <a href="/post/{{ post['post_id'] }}">
+                                <h2 class="post-title">{{ post['title'] }}</h2>
+                                <p class="text-secondary mt-2" style="font-size: 16px;">{{ post['text'][:160] }}...</p>
+                            </a>
+                            <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
+                                <p class="post-meta m-0">
+                                    Тема: <span class="text-info fw-bold">{{ post['category_name'] }}</span> • <small class="text-muted">{{ post['datetime'] }}</small>
+                                </p>
+                                
+                                {% if user and user['is_admin'] == 1 %}
+                                    <div class="d-flex gap-2">
+                                        <a href="/post/{{ post['post_id'] }}/edit" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Редагувати</a>
+                                        <form action="/post/{{ post['post_id'] }}/delete" method="POST" onsubmit="return confirm('Ви впевнені, що хочете видалити цю статтю?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">Видалити</button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <p class="text-muted fs-5">У цій категорії ще немає жодної статті 📝</p>
+                        <a href="/" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Повернутися до всіх</a>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center">
+        <div class="container">
+            <p class="text-muted small m-0">© MY.BLOG 2026 | Створено на Flask & Bootstrap</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
