@@ -46,6 +46,13 @@
                 
                 <p class="text-muted small mt-2">Опубліковано: {{ post['datetime'] }}</p>
                 <hr>
+
+                {% if post['image'] %}
+                    <div class="mb-4">
+                        <img src="{{ url_for('static', filename='uploads/' + post['image']) }}" alt="{{ post['title'] }}" class="img-fluid rounded shadow-sm" style="max-height: 500px; width: 100%; object-fit: cover;">
+                    </div>
+                {% endif %}
+                
                 <div class="fs-5 lh-lg text-dark my-4" style="white-space: pre-wrap;">{{ post['text'] }}</div>
                 
                 <div class="d-flex align-items-center my-4">
