@@ -52,12 +52,18 @@ def create_tables():
     except:
         pass
 
+    try:
+        execute('ALTER TABLE posts ADD COLUMN image TEXT')
+    except:
+        pass
+
     execute('''
         CREATE TABLE IF NOT EXISTS posts (
             post_id INTEGER PRIMARY KEY AUTOINCREMENT,
             category_id INTEGER NOT NULL,
             title TEXT NOT NULL DEFAULT "Без заголовку",
             text TEXT NOT NULL,
+            image TEXT,
             datetime TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (category_id) REFERENCES categories(category_id)
                 ON UPDATE CASCADE
@@ -76,7 +82,6 @@ def create_tables():
         )
     ''')
 
-    # ТАБЛИЦЯ ЛАЙКІВ
     execute('''
         CREATE TABLE IF NOT EXISTS likes (
             like_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,17 +112,20 @@ def delete_category(category_id):
     execute('DELETE FROM categories WHERE category_id = ?', [category_id])
     close_db()
 
-def add_post(category_id, text, title="Без заголовку", datetime=None):
+def add_post(category_id, text, title="Без заголовку", image=None, datetime=None):
     open_db()
     if datetime is None:
-        execute('INSERT INTO posts (category_id, title, text) VALUES (?, ?, ?)', [category_id, title, text])
+        execute('INSERT INTO posts (category_id, title, text, image) VALUES (?, ?, ?, ?)', [category_id, title, text, image])
     else:
-        execute('INSERT INTO posts (category_id, title, text, datetime) VALUES (?, ?, ?, ?)', [category_id, title, text, datetime])
+        execute('INSERT INTO posts (category_id, title, text, image, datetime) VALUES (?, ?, ?, ?, ?)', [category_id, title, text, image, datetime])
     close_db()
 
-def update_post(post_id, category_id, title, text):
+def update_post(post_id, category_id, title, text, image=None):
     open_db()
-    execute('UPDATE posts SET category_id = ?, title = ?, text = ? WHERE post_id = ?', [category_id, title, text, post_id])
+    if image:
+        execute('UPDATE posts SET category_id = ?, title = ?, text = ?, image = ? WHERE post_id = ?', [category_id, title, text, image, post_id])
+    else:
+        execute('UPDATE posts SET category_id = ?, title = ?, text = ? WHERE post_id = ?', [category_id, title, text, post_id])
     close_db()
 
 def delete_post(post_id):
@@ -193,11 +201,10 @@ def update_user_profile(user_id, name, description_short, description, image=Non
     else:
         execute('''
             UPDATE users 
-            SET name = ?, description_short = ?, description = ? 
+            SET name = ?, description_short = ?, description =? 
             WHERE user_id = ?
         ''', [name, description_short, description, user_id])
     close_db()
-
 
 def toggle_like(user_id, post_id):
     open_db()
@@ -228,7 +235,7 @@ def check_user_liked(user_id, post_id):
 
 def update_comment(comment_id, text):
     open_db()
-    execute('UPDATE comments SET text = ? WHERE comment_id = ?', [text, comment_id])
+    execute('UPDATE comments SET text = ? WHERE comment_id = ?', [comment_id, comment_id])
     close_db()
 
 def get_comment_by_id(comment_id):

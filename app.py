@@ -1,5 +1,7 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, abort
 import sqlite3
+from werkzeug.utils import secure_filename
 from settings import PATH_DB
 from db import (create_tables, get_categories, add_post, get_posts, 
                 get_post_by_id, add_comment, get_comments, update_post, delete_post, delete_comment,
@@ -10,6 +12,10 @@ from auth import auth_bp, get_current_user
 
 app = Flask(__name__)
 app.secret_key = 'super-secret-key-change-me-in-production'
+
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.register_blueprint(auth_bp)
 create_tables()
@@ -36,8 +42,14 @@ def index():
         title = request.form.get('title')
         post_text = request.form.get('text')
         
+        file = request.files.get('image')
+        filename = None
+        if file and file.filename != '':
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        
         if category_id and post_text and title:
-            add_post(int(category_id), post_text, title=title)
+            add_post(int(category_id), post_text, title=title, image=filename)
         return redirect(url_for('index'))
 
     selected_category = request.args.get('category_id', type=int)
@@ -104,8 +116,14 @@ def edit_post(post_id):
         title = request.form.get('title')
         post_text = request.form.get('text')
         
+        file = request.files.get('image')
+        filename = post['image']
+        if file and file.filename != '':
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        
         if category_id and title and post_text:
-            update_post(post_id, int(category_id), title, post_text)
+            update_post(post_id, int(category_id), title, post_text, filename)
             return redirect(url_for('post_detail', post_id=post_id))
             
     categories = get_categories()
@@ -149,7 +167,6 @@ def edit_comment_route(comment_id):
         return redirect(url_for('post_detail', post_id=comment['post_id']))
         
     return render_template('edit_comment.html', user=user, comment=comment)
-
 
 @app.route('/admin/categories', methods=['GET', 'POST'])
 def manage_categories():
