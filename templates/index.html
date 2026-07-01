@@ -97,8 +97,8 @@
                                 <input type="text" class="form-control" id="title" name="title" placeholder="Заголовок статті..." required>
                             </div>
                             <div class="mb-3">
-                                <label for="image" class="form-label text-muted small fw-bold">Додати зображення:</label>
-                                <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                <label for="images" class="form-label text-muted small fw-bold">Додати фотографії (можна декілька, перша буде головною):</label>
+                                <input type="file" class="form-control" id="images" name="images" accept="image/*" multiple>
                             </div>
                             <div class="mb-3">
                                 <textarea class="form-control" id="text" name="text" rows="4" placeholder="Текст твого поста..." required></textarea>
@@ -119,9 +119,9 @@
                         <div class="post-preview">
                             <a href="/post/{{ post['post_id'] }}">
                                 <h2 class="post-title">{{ post['title'] }}</h2>
-                                {% if post['image'] %}
+                                {% if post['main_image'] %}
                                     <div class="mb-3 mt-2">
-                                        <img src="{{ url_for('static', filename='uploads/' + post['image']) }}" alt="{{ post['title'] }}" class="img-fluid rounded" style="max-height: 400px; width: 100%; object-fit: cover;">
+                                        <img src="{{ url_for('static', filename='uploads/' + post['main_image']) }}" alt="{{ post['title'] }}" class="img-fluid rounded" style="max-height: 400px; width: 100%; object-fit: cover;">
                                     </div>
                                 {% endif %}
                                 <p class="text-secondary mt-2" style="font-size: 16px;">{{ post['text'][:160] }}...</p>

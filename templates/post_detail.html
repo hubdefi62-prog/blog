@@ -13,6 +13,7 @@
         .post-container { padding-top: 50px; padding-bottom: 50px; }
         .comment-box { background-color: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #0085a1; position: relative; }
         footer { padding: 40px 0; border-top: 1px solid #eee; margin-top: 80px; background-color: #fafafa; }
+        .post-gallery-img { max-height: 450px; width: 100%; object-fit: cover; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -47,9 +48,13 @@
                 <p class="text-muted small mt-2">Опубліковано: {{ post['datetime'] }}</p>
                 <hr>
 
-                {% if post['image'] %}
-                    <div class="mb-4">
-                        <img src="{{ url_for('static', filename='uploads/' + post['image']) }}" alt="{{ post['title'] }}" class="img-fluid rounded shadow-sm" style="max-height: 500px; width: 100%; object-fit: cover;">
+                {% if images %}
+                    <div class="row g-3 mb-4">
+                        {% for img in images %}
+                            <div class="{% if images|length == 1 %}col-12{% else %}col-6{% endif %}">
+                                <img src="{{ url_for('static', filename='uploads/' + img['image_path']) }}" class="post-gallery-img shadow-sm" alt="Фото статті">
+                            </div>
+                        {% endfor %}
                     </div>
                 {% endif %}
                 
