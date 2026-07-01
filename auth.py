@@ -22,12 +22,15 @@ def register():
         name = request.form.get('name')
         login = request.form.get('login')
         password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
         
+        if password != confirm_password:
+            return render_template('register.html', error="Паролі не збігаються!")
+            
         hashed_password = generate_password_hash(password)
         
         conn = sqlite3.connect(PATH_DB)
         cursor = conn.cursor()
-        
         
         cursor.execute('SELECT COUNT(*) FROM users')
         count = cursor.fetchone()[0]
@@ -40,8 +43,10 @@ def register():
             ''', [name, login, hashed_password, '', 'Блогер', 'Привіт усім!', is_admin_value])
             conn.commit()
             return redirect(url_for('auth.login'))
+        except sqlite3.IntegrityError:
+            return render_template('register.html', error="Цей логін уже зайнятий!")
         except sqlite3.Error as e:
-            return f"Помилка реєстрації (можливо, логін вже зайнятий): {e}"
+            return render_template('register.html', error=f"Помилка бази даних: {e}")
         finally:
             conn.close()
             
@@ -64,7 +69,7 @@ def login():
             session['user_id'] = user['user_id']
             return redirect(url_for('index'))
         else:
-            return "Неправильний логін або пароль!"
+            return render_template('login.html', error="Неправильний логін або пароль!")
             
     return render_template('login.html')
 
